@@ -1,30 +1,27 @@
-from cryptography.fernet import Fernet
+import rsa
 
 #genera una clau i la guarda en un fitxer
 def key_generator():
-    key = Fernet.generate_key()
+    (pkey, skey) = rsa.newkeys(1024)
 
-    with open("key.txt", "wb") as file:
-        file.write(key)
+    with open("public_key.txt", "wb") as file:
+        file.write(pkey.save_pkcs1('PEM'))
+    with open("secret_key.txt", "wb") as file:
+        file.write(skey.save_pkcs1('PEM'))
 
 #obte una clau generada previament
 def get_key():
-    with open("key.txt", "rb") as file:
-        key = file.read()
+    with open('public_key.txt', 'rb') as p:
+        publicKey = rsa.PublicKey.load_pkcs1(p.read())
+    with open('secret_key.txt', 'rb') as p:
+        privateKey = rsa.PrivateKey.load_pkcs1(p.read())
 
-    return key
+    return privateKey, publicKey
 
 #xifrar text     
-
 def encrypt(text, key):
-    f = Fernet(key)
-    code = f.encrypt(text.encode())
-
-    return code
+    return rsa.encrypt(text.encode('ascii'), key)
 
 #desxifrar text
 def desencrypt(text, key):
-    f = Fernet(key)
-    decrypted = f.decrypt(text).decode()
-    
-    return decrypted
+    return rsa.decrypt(text, key).decode('ascii')
